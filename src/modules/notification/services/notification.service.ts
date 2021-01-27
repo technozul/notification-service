@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common'
 import { NotificationHandlerInterface } from './interfaces/notification-handler.interface'
 import { NotificationPayload } from './interfaces/notification-payload.interface'
 import { NotificationProvider } from './notification.provider'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { NotificationType } from './types/notification-type.enum'
 
 @Injectable()
@@ -15,11 +16,14 @@ export class NotificationService {
   ) {}
 
   async send(payloads: NotificationPayload[]) {
-    payloads.forEach((payload) => {
-      const notificationHandler: NotificationHandlerInterface = this.notificationHandlerMappepr.get(
-        payload.type
-      )
-      notificationHandler.send(payload)
+    return new Promise((resolve) => {
+      payloads.forEach((payload) => {
+        const notificationHandler: NotificationHandlerInterface = this.notificationHandlerMappepr.get(
+          payload.type
+        )
+        notificationHandler.send(payload)
+      })
+      resolve(true)
     })
   }
 }
