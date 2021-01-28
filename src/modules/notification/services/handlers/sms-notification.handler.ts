@@ -23,10 +23,11 @@ export class SMSNotificationHandler implements NotificationHandlerInterface {
     const options = {}
 
     if (Array.isArray(to)) {
-      return Promise.resolve(() => {
+      return new Promise((resolve) => {
         to.forEach((r) => {
           this.sender(from, r, text, options)
         })
+        resolve(true)
       })
     }
 

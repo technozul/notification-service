@@ -16,13 +16,14 @@ export class NotificationService {
   ) {}
 
   async send(payloads: NotificationPayload[]) {
-    return Promise.resolve(() => {
+    return new Promise((resolve) => {
       payloads.forEach((payload) => {
         const notificationHandler: NotificationHandlerInterface = this.notificationHandlerMappepr.get(
           payload.type
         )
         notificationHandler.send(payload)
       })
+      resolve(true)
     })
   }
 }

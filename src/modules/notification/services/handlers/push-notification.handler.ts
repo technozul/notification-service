@@ -12,22 +12,24 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
   }
 
   async send(payload: NotificationPayload) {
+    const messageNotificationPayload: messaging.Notification = {
+      title: payload.subject,
+      body: payload.message
+    }
+
     if (Array.isArray(payload.to)) {
-      return this.sendBulk(payload)
+      return this.sendBulk(payload, messageNotificationPayload)
     }
 
     const recipient = payload.to as string
     const messaging = this.firebaseApp.messaging()
-    const message: messaging.Message = {
+    const sendPayload: messaging.Message = {
       token: recipient,
-      notification: {
-        title: payload.subject,
-        body: payload.message
-      }
+      notification: messageNotificationPayload
     }
 
     return messaging
-      .send(message)
+      .send(sendPayload)
       .then((response: string) => {
         console.log('sukses kirim push: ', response)
       })
@@ -36,18 +38,19 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
       })
   }
 
-  async sendBulk(payload: NotificationPayload) {
+  async sendBulk(
+    payload: NotificationPayload,
+    messageNotificationPayload: messaging.Notification
+  ) {
     const recipient = payload.to as string[]
     const messaging = this.firebaseApp.messaging()
-    const message: messaging.MulticastMessage = {
+    const sendPayload: messaging.MulticastMessage = {
       tokens: recipient,
-      data: {
-        message: payload.message
-      }
+      notification: messageNotificationPayload
     }
 
     return messaging
-      .sendMulticast(message)
+      .sendMulticast(sendPayload)
       .then((response: messaging.BatchResponse) => {
         console.log('sukses kirim push: ', response)
       })
@@ -60,7 +63,8 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
     const cert = serviceAccountKey as firebaseAdmin.ServiceAccount
     const credential = firebaseAdmin.credential.cert(cert)
     const app = firebaseAdmin.initializeApp({
-      credential
+      credential,
+      databaseURL: process.env.FIREBASE_DB_URL
     })
     this.firebaseApp = app
   }
