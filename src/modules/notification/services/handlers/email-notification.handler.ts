@@ -1,14 +1,14 @@
 import { NotificationPayload } from '../interfaces/notification-payload.interface'
 import { NotificationHandlerInterface } from '../interfaces/notification-handler.interface'
 import * as nodemailer from 'nodemailer'
-import * as mailgun from 'nodemailer-mailgun-transport'
+import mailgun from 'nodemailer-mailgun-transport'
 import Mail from 'nodemailer/lib/mailer'
 
 export class EmailNotificationHandler implements NotificationHandlerInterface {
   async send(payload: NotificationPayload) {
     const transporter = this.getTransporter()
     const emailPayload: Mail.Options = {
-      from: process.env.MAILGUN_EMAIL_SENDER,
+      from: process.env.EMAIL_SENDER_USERNAME,
       to: payload.to,
       subject: payload.subject,
       text: payload.message
@@ -16,7 +16,8 @@ export class EmailNotificationHandler implements NotificationHandlerInterface {
 
     return transporter.sendMail(emailPayload, (error, info) => {
       if (error) {
-        console.log('ada error nih: ', error)
+        console.log('ada error nih pas kirim email: ', error)
+        return
       }
       console.log('sukses kirim email: ', info)
     })

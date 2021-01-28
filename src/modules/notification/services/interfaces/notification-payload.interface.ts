@@ -14,7 +14,7 @@ export class NotificationPayload {
 
   @IsNotEmpty()
   @IsString({ each: true })
-  to: string[]
+  to: string | string[]
 
   @IsNotEmpty()
   @IsString()
