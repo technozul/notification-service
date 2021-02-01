@@ -2,7 +2,7 @@ import { NotificationPayload } from '../interfaces/notification-payload.interfac
 import { NotificationHandlerInterface } from '../interfaces/notification-handler.interface'
 import * as firebaseAdmin from 'firebase-admin'
 import * as serviceAccountKey from '@src/firebase/serviceAccountKey.json'
-import { messaging } from 'firebase-admin'
+import { FirebaseError, messaging } from 'firebase-admin'
 
 export class PushNotificationHandler implements NotificationHandlerInterface {
   private firebaseApp: firebaseAdmin.app.App
@@ -21,20 +21,23 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
       return this.sendBulk(payload, messageNotificationPayload)
     }
 
-    const recipient = payload.to as string
+    const token = payload.to as string
     const messaging = this.firebaseApp.messaging()
     const sendPayload: messaging.Message = {
-      token: recipient,
+      token,
       notification: messageNotificationPayload
     }
 
     return messaging
       .send(sendPayload)
       .then((response: string) => {
-        console.log('sukses kirim push: ', response)
+        console.log(`sukses kirim push ke: ${token}`, response)
+        // TODO logger console (pino)
       })
-      .catch((error) => {
-        console.log('error pas kirim push nih bro:', error)
+      .catch((error: FirebaseError) => {
+        const err = { ...error.toJSON(), token }
+        console.log('PUSH Response error:', err)
+        // TODO logger insert to db
       })
   }
 
@@ -52,10 +55,24 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
     return messaging
       .sendMulticast(sendPayload)
       .then((response: messaging.BatchResponse) => {
-        console.log('sukses kirim push: ', response)
+        const responses = response.responses
+        responses.forEach((r, i) => {
+          const token = recipient[i]
+
+          if (r.error) {
+            const err = { ...r.error.toJSON(), token }
+            console.log('PUSH Response erorr: ', err)
+            // TODO logger insert to db
+            return
+          }
+
+          console.log(`sukses kirim push ke: ${token}`)
+          // TODO logger console (pino)
+        })
       })
       .catch((error) => {
-        console.log('error pas kirim push nih bro:', error)
+        console.log('PUSH API error:', error)
+        // TODO logger console (pino)
       })
   }
 

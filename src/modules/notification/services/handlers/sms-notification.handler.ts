@@ -47,10 +47,23 @@ export class SMSNotificationHandler implements NotificationHandlerInterface {
       options,
       (error: MessageError, response: MessageRequestResponse) => {
         if (error) {
-          console.log(`ada error pas kirim sms ke ${to} bro: `, error)
+          console.log(`SMS Response error: `, error)
+          // TODO logger console (pino)
           return
         }
-        console.log(`suskes kirim sms ke ${to}: `, response)
+
+        const messages = response.messages
+        messages.forEach((m) => {
+          const status = parseInt(m.status)
+          if (status !== 0) {
+            console.log('SMS Response error: ', m)
+            // TODO logger insert to db
+            return
+          }
+        })
+
+        console.log(`sukses kirim sms ke: ${to}`)
+        // TODO logger console (pino)
       }
     )
   }

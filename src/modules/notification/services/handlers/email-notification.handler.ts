@@ -5,8 +5,13 @@ import mailgun from 'nodemailer-mailgun-transport'
 import Mail from 'nodemailer/lib/mailer'
 
 export class EmailNotificationHandler implements NotificationHandlerInterface {
+  private transporter: Mail
+
+  constructor() {
+    this.transporter = this.getTransporter()
+  }
+
   async send(payload: NotificationPayload) {
-    const transporter = this.getTransporter()
     const emailPayload: Mail.Options = {
       from: process.env.EMAIL_SENDER_USERNAME,
       to: payload.to,
@@ -14,12 +19,14 @@ export class EmailNotificationHandler implements NotificationHandlerInterface {
       text: payload.message
     }
 
-    return transporter.sendMail(emailPayload, (error, info) => {
+    return this.transporter.sendMail(emailPayload, (error, info) => {
       if (error) {
-        console.log('ada error nih pas kirim email: ', error)
+        console.log('EMAIL Response error: ', error)
+        // TODO logger insert to db
         return
       }
-      console.log('sukses kirim email: ', info)
+      console.log('sukses kirim email', info)
+      // TODO logger console (pino)
     })
   }
 
