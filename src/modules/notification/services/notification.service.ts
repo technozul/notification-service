@@ -1,12 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common'
+import { Injectable, Inject, Logger } from '@nestjs/common'
 import { NotificationHandlerInterface } from './interfaces/notification-handler.interface'
 import { NotificationPayload } from './interfaces/notification-payload.interface'
 import { NotificationProvider } from './notification.provider'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { NotificationType } from './types/notification-type.enum'
+import {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  NotificationType
+} from './types/notification-type.enum'
 
 @Injectable()
 export class NotificationService {
+  private readonly logger: Logger = new Logger(NotificationService.name)
+
   constructor(
     @Inject(NotificationProvider)
     private readonly notificationHandlerMappepr: Map<
@@ -15,15 +19,16 @@ export class NotificationService {
     >
   ) {}
 
-  async send(payloads: NotificationPayload[]) {
-    return new Promise((resolve) => {
-      payloads.forEach((payload) => {
-        const notificationHandler: NotificationHandlerInterface = this.notificationHandlerMappepr.get(
-          payload.type
-        )
-        notificationHandler.send(payload)
-      })
-      resolve(true)
-    })
+  async send(payload: NotificationPayload) {
+    try {
+      const notificationType = payload.type
+      const handler: NotificationHandlerInterface = this.notificationHandlerMappepr.get(
+        notificationType
+      )
+      await handler.send(payload)
+      return true
+    } catch (error) {
+      this.logger.error(error.message)
+    }
   }
 }

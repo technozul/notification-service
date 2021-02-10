@@ -34,5 +34,5 @@ export class NotificationPayloadWrapper {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => NotificationPayload)
-  payload: NotificationPayload[]
+  payloads: NotificationPayload[]
 }

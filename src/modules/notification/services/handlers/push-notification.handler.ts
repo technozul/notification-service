@@ -3,9 +3,11 @@ import { NotificationHandlerInterface } from '../interfaces/notification-handler
 import * as firebaseAdmin from 'firebase-admin'
 import * as serviceAccountKey from '@src/firebase/serviceAccountKey.json'
 import { FirebaseError, messaging } from 'firebase-admin'
+import { Logger } from '@nestjs/common'
 
 export class PushNotificationHandler implements NotificationHandlerInterface {
   private firebaseApp: firebaseAdmin.app.App
+  private readonly logger: Logger = new Logger(PushNotificationHandler.name)
 
   constructor() {
     this.initFirebaseApp()
@@ -31,13 +33,11 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
     return messaging
       .send(sendPayload)
       .then((response: string) => {
-        console.log(`sukses kirim push ke: ${token}`, response)
-        // TODO logger console (pino)
+        return response
       })
       .catch((error: FirebaseError) => {
-        const err = { ...error.toJSON(), token }
-        console.log('PUSH Response error:', err)
-        // TODO logger insert to db
+        const message = `${error.message}: ${token}`
+        this.logger.error(message)
       })
   }
 
@@ -58,21 +58,17 @@ export class PushNotificationHandler implements NotificationHandlerInterface {
         const responses = response.responses
         responses.forEach((r, i) => {
           const token = recipient[i]
+          const error = r.error
 
-          if (r.error) {
-            const err = { ...r.error.toJSON(), token }
-            console.log('PUSH Response erorr: ', err)
-            // TODO logger insert to db
+          if (error) {
+            const message = `${error.message}: ${token}`
+            this.logger.error(message)
             return
           }
-
-          console.log(`sukses kirim push ke: ${token}`)
-          // TODO logger console (pino)
         })
       })
       .catch((error) => {
-        console.log('PUSH API error:', error)
-        // TODO logger console (pino)
+        this.logger.error(error.message)
       })
   }
 

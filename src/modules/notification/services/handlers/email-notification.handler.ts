@@ -3,9 +3,11 @@ import { NotificationHandlerInterface } from '../interfaces/notification-handler
 import * as nodemailer from 'nodemailer'
 import mailgun from 'nodemailer-mailgun-transport'
 import Mail from 'nodemailer/lib/mailer'
+import { Logger } from '@nestjs/common'
 
 export class EmailNotificationHandler implements NotificationHandlerInterface {
   private transporter: Mail
+  private readonly logger: Logger = new Logger(EmailNotificationHandler.name)
 
   constructor() {
     this.transporter = this.getTransporter()
@@ -19,14 +21,11 @@ export class EmailNotificationHandler implements NotificationHandlerInterface {
       text: payload.message
     }
 
-    return this.transporter.sendMail(emailPayload, (error, info) => {
+    return this.transporter.sendMail(emailPayload, (error) => {
       if (error) {
-        console.log('EMAIL Response error: ', error)
-        // TODO logger insert to db
+        this.logger.error(error.message)
         return
       }
-      console.log('sukses kirim email', info)
-      // TODO logger console (pino)
     })
   }
 

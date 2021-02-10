@@ -5,9 +5,11 @@ import Vonage, {
   MessageRequestResponse,
   SendSmsOptions
 } from '@vonage/server-sdk'
+import { Logger } from '@nestjs/common'
 
 export class SMSNotificationHandler implements NotificationHandlerInterface {
   private vonageApp: Vonage
+  private readonly logger: Logger = new Logger(SMSNotificationHandler.name)
 
   constructor() {
     this.vonageApp = new Vonage({
@@ -47,23 +49,16 @@ export class SMSNotificationHandler implements NotificationHandlerInterface {
       options,
       (error: MessageError, response: MessageRequestResponse) => {
         if (error) {
-          console.log(`SMS Response error: `, error)
-          // TODO logger console (pino)
-          return
+          this.logger.error(`SMS request error: ${error}`)
         }
-
         const messages = response.messages
         messages.forEach((m) => {
           const status = parseInt(m.status)
           if (status !== 0) {
-            console.log('SMS Response error: ', m)
-            // TODO logger insert to db
+            this.logger.error(`SMS response error: ${m}`)
             return
           }
         })
-
-        console.log(`sukses kirim sms ke: ${to}`)
-        // TODO logger console (pino)
       }
     )
   }
